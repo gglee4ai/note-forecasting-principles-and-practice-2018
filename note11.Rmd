@@ -1,0 +1,124 @@
+---
+title: "note11"
+output: html_notebook
+---
+
+```{r}
+library(fpp2)
+library(ggplot2)
+theme_set(theme_gray(base_family = "NanumGothic"))
+```
+
+# 11 고급 예측 기법
+
+
+## 11.1 복잡한 계절성
+
+
+```{r}
+p1 <- autoplot(calls) +
+  ylab("통화량") +
+  xlab("주차") +
+  scale_x_continuous(breaks = seq(1, 33, by = 2))
+
+p2 <- autoplot(window(calls, end = 4)) +
+  scale_x_continuous(minor_breaks = seq(1, 4, by = 0.2))
+gridExtra::grid.arrange(p1, p2)
+```
+
+```{r}
+calls |> 
+  mstl() |> 
+  autoplot()
+```
+
+
+```{r}
+calls |> 
+  stlf() |> 
+  autoplot() +
+  xlab("주차")
+```
+
+```{r}
+fit <- auto.arima(calls, seasonal = FALSE, lambda = 0, 
+           xreg = fourier(calls, K = c(10, 10)))
+fit
+```
+
+```{r}
+fit |> 
+  forecast(xreg = fourier(calls, K = c(10, 10), h = 2 * 169)) |> 
+  autoplot(include = 5 * 169) +
+  ylab("통화량") +
+  xlab("주차")
+```
+
+
+```{r}
+calls %>%
+  subset(start=length(calls)-2000) %>%
+  tbats() -> fit2
+fc2 <- forecast(fit2, h=2*169)
+autoplot(fc2, include=5*169) +
+  ylab("통화량") + xlab("주차")
+```
+
+```{r}
+elecdemand[, c("Demand", "Temperature")] |> 
+  autoplot(facets = TRUE) +
+  scale_x_con
+```
+
+```{r}
+elecdemand |> 
+  as.data.frame() |> 
+  ggplot(aes(Temperature, Demand)) +
+  geom_point(alpha = 0.1) +
+  xlab("기온 (섭씨)") +
+  ylab("수요 (GW)")
+```
+
+```{r}
+cooling <- pmax(elecdemand[,"Temperature"], 18)
+fit <- auto.arima(elecdemand[,"Demand"],
+         xreg = cbind(fourier(elecdemand, c(10,10,0)),
+               heating=elecdemand[,"Temperature"],
+               cooling=cooling))
+```
+
+
+```{r}
+temps <- subset(elecdemand[,"Temperature"],
+          start=NROW(elecdemand)-2*48+1)
+fc <- forecast(fit,
+        xreg=cbind(fourier(temps, c(10,10,0)),
+          heating=temps, cooling=pmax(temps,18)))
+autoplot(fc, include=14*48)
+```
+
+```{r}
+checkresiduals(fc)
+```
+
+
+## 11.2 벡터 자기회귀
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
