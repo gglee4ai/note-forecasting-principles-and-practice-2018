@@ -139,7 +139,6 @@ ggAcf(y)
 
 ```{r}
 autoplot(gold)
-autoplot(woolyrng)
 ```
 
 ```{r}
